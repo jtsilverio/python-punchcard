@@ -1,22 +1,31 @@
 from datetime import datetime
 
-import peewee
+from attrs import converters, define, field, validators
 
-from punchcard.constants import DATABASE_PATH
 from punchcard.exceptions import AlreadyClockedOutError, NotClockedOutError
 
-db = peewee.SqliteDatabase(DATABASE_PATH)
+
+def datetime_converter(value: datetime) -> datetime:
+    if not isinstance(value, datetime):
+        raise TypeError("Value must be a datetime object")
+    return value.replace(second=0, microsecond=0)
 
 
-class BaseModel(peewee.Model):
-    class Meta:
-        database = db
-
-
-class Punchcard(BaseModel):
-    id = peewee.AutoField(primary_key=True)
-    start = peewee.DateTimeField()
-    end = peewee.DateTimeField(null=False, default=None)
+@define
+class Punchcard:
+    start: datetime = field(
+        validator=validators.instance_of(datetime),
+        converter=datetime_converter,
+    )
+    end: datetime = field(
+        default=None,
+        validator=validators.optional(validators.instance_of(datetime)),
+        converter=converters.optional(datetime_converter),
+    )
+    sqliteid: int = field(
+        default=None,
+        validator=validators.optional(validators.instance_of(int)),
+    )
 
     def __str__(self):
         return f"{self.start} - {self.end}"

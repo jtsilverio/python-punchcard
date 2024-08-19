@@ -4,10 +4,6 @@ from datetime import date, datetime
 from punchcard.constants import DATABASE_PATH
 from punchcard.models import Punchcard
 
-conn = sqlite3.connect(DATABASE_PATH)
-c = conn.cursor()
-create_tables()
-
 
 def create_tables():
     c.execute("""
@@ -19,7 +15,12 @@ def create_tables():
     """)
 
 
-def last_punchcard() -> Punchcard | None:
+conn = sqlite3.connect(DATABASE_PATH)
+c = conn.cursor()
+create_tables()
+
+
+def get_last_punchcard() -> Punchcard | None:
     with conn:
         c.execute(
             "SELECT start, end, id FROM punchcard ORDER BY id DESC LIMIT 1"
