@@ -1,0 +1,31 @@
+[project]
+name = "punchcard"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Jefferson", email = "jfo.txt@gmail.com"},
+]
+dependencies = [
+    "typer",
+    "rich",
+    "attrs>=24.2.0",
+    "peewee>=3.17.6",
+]
+requires-python = ">=3.12"
+readme = "README.md"
+license = {text = "MIT"}
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "ruff",
+    "pylint",
+]
+
+
+[tool.pdm]
+distribution = true
