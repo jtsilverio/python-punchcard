@@ -1,7 +1,7 @@
 import sqlite3
 from datetime import date, datetime
 
-from punchcard.constants import DATABASE_PATH
+from punchcard.constants import DATABASE_NAME, DATABASE_PATH
 from punchcard.models import Punchcard
 
 
@@ -15,7 +15,7 @@ def create_tables():
     """)
 
 
-conn = sqlite3.connect(DATABASE_PATH)
+conn = sqlite3.connect(DATABASE_PATH / DATABASE_NAME)
 c = conn.cursor()
 create_tables()
 
@@ -88,5 +88,4 @@ def get_punchcards(date: date = None):  # pylint: disable=redefined-outer-name
 
 if __name__ == "__main__":
     card = Punchcard(start=datetime.now())
-    last = get_last_punchcard()
-    clockout(last)
+    clockin(card)
