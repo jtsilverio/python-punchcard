@@ -24,7 +24,12 @@ def get_last_punchcard() -> Punchcard | None:
 
 def clockin(punchcard: Punchcard):
     last_punchcard = get_last_punchcard()
-    if (last_punchcard is not None) and (last_punchcard.end is None):
+    current_date, _ = now()
+    if (
+        (last_punchcard is not None)
+        and (last_punchcard.date == current_date)
+        and (last_punchcard.end is None)
+    ):
         raise NotClockedOutError()
 
     if punchcard.end is not None:
@@ -45,7 +50,9 @@ def clockout(punchcard: Punchcard):
 def get_punchcards(date: datetime.date):  # pylint: disable=redefined-outer-name
     if not isinstance(date, (datetime.date, datetime.datetime)):
         raise ValueError("date must be a datetime object")
-
-    return Punchcard.select().where(
+    query = Punchcard.select().where(
         Punchcard.date == date,
     )
+
+    result = list(query.execute())
+    return result

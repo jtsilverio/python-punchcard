@@ -31,5 +31,8 @@ class Punchcard(Model):
     def __str__(self) -> str:
         return f"{self.id} {self.start} {self.end} {self.duration()}"
 
+    def __repr__(self) -> str:
+        return f"Punchcard(id={self.id}, start={self.start}, end={self.end})"
+
     class Meta:
         database = db
