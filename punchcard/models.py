@@ -1,51 +1,35 @@
 from datetime import datetime
 
-from attrs import converters, define, field, validators
+from peewee import (
+    DateField,
+    IntegerField,
+    Model,
+    SqliteDatabase,
+    TimeField,
+)
 
-from punchcard.exceptions import AlreadyClockedOutError, NotClockedOutError
+from punchcard.constants import DATABASE_PATH, DATE_FORMAT, TIME_FORMAT
+
+db = SqliteDatabase(DATABASE_PATH)
 
 
-def datetime_converter(value: datetime) -> datetime:
-    if not isinstance(value, datetime):
-        raise TypeError("Value must be a datetime object")
-    return value.replace(second=0, microsecond=0)
+class Punchcard(Model):
+    id = IntegerField(null=True, primary_key=True)
+    date = DateField(formats=DATE_FORMAT)
+    start = TimeField(formats=TIME_FORMAT)
+    end = TimeField(formats=TIME_FORMAT, null=True)
 
-
-@define
-class Punchcard:
-    start: datetime = field(
-        validator=validators.instance_of(datetime),
-        converter=datetime_converter,
-    )
-    end: datetime = field(
-        default=None,
-        validator=validators.optional(validators.instance_of(datetime)),
-        converter=converters.optional(datetime_converter),
-    )
-    sqliteid: int = field(
-        default=None,
-        validator=validators.optional(validators.instance_of(int)),
-    )
-
-    def __str__(self):
-        return f"{self.start} - {self.end}"
-
-    def __eq__(self, value: object) -> bool:
-        if not isinstance(value, Punchcard):
-            raise ValueError(
-                f"Cannot compare Punchcard object with {isinstance(value)} type"
-            )
-
-        return self.start == value.start and self.end == value.end
-
-    def clockout(self):
-        if self.end is not None:
-            raise AlreadyClockedOutError()
-
-        self.end = datetime.now()
-
-    def duration(self):
+    def duration(self) -> float | None:
         if self.end is None:
-            raise NotClockedOutError()
+            return None
 
-        return int((self.end - self.start).total_seconds() / 60)
+        return (
+            datetime.strptime(self.end, TIME_FORMAT)
+            - datetime.strptime(self.start, TIME_FORMAT)
+        ).total_seconds() // 3600
+
+    def __str__(self) -> str:
+        return f"{self.id} {self.start} {self.end} {self.duration()}"
+
+    class Meta:
+        database = db
