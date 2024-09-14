@@ -1,35 +1,37 @@
 [project]
 name = "punchcard"
-version = "0.1.0"
 description = ""
 authors = [
-    {name = "Jefferson", email = "jfo.txt@gmail.com"},
+    {name = "Jefferson Silverio", email = "jfo.txt@gmail.com"},
 ]
 dependencies = [
-    "typer",
-    "rich",
-    "attrs>=24.2.0",
     "peewee>=3.17.6",
+    "typer>=0.12.5",
+    "rich>=13.8.1",
 ]
 requires-python = ">=3.12"
 readme = "README.md"
 license = {text = "MIT"}
+dynamic = ["version"]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.3",
+    "ruff>=0.6.5",
+    "pylint>=3.2.7",
+    "mypy>=1.11.2",
+]
 
 [build-system]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
 
-[project.optional-dependencies]
-dev = [
-    "pytest",
-    "ruff",
-    "pylint",
-]
-
+[tool.pdm.version]
+source = "file"
+path = "punchcard/version.py"
 
 [tool.pdm]
 distribution = true
-
 
 [tool.mypy]
 python_version = "3.12"
