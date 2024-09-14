@@ -20,6 +20,13 @@ class Punchcard(Model):
     end = TimeField(formats=TIME_FORMAT, null=True)
 
     def duration(self) -> float | None:
+        """
+        Calculate the duration between the start and end times in hours.
+        If the card is still in progress and the end time is not set, returns None.
+
+        Returns:
+            float | None: The duration in *hours* if the end time is set, otherwise None.
+        """
         if self.end is None:
             return None
 
@@ -29,10 +36,12 @@ class Punchcard(Model):
         ).total_seconds() // 3600
 
     def __str__(self) -> str:
-        return f"{self.id} {self.start} {self.end} {self.duration()}"
+        return (
+            f"{self.id} {self.date} {self.start} {self.end} {self.duration()}"
+        )
 
     def __repr__(self) -> str:
-        return f"Punchcard(id={self.id}, start={self.start}, end={self.end})"
+        return f"Punchcard(id={self.id}, date={self.date}, start={self.start}, end={self.end})"
 
     class Meta:
         database = db
