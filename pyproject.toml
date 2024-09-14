@@ -29,3 +29,27 @@ dev = [
 
 [tool.pdm]
 distribution = true
+
+
+[tool.mypy]
+python_version = "3.12"
+warn_unused_configs = true
+warn_unused_ignores = true
+warn_return_any = true
+warn_unreachable = true
+disallow_untyped_calls = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+ignore_missing_imports = true
+strict_optional = true
+show_error_codes = true
+pretty = true
+exclude =  ["tests"]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-x -vv"
+testpaths = [
+    "tests",
+]
