@@ -1,63 +1,68 @@
 from datetime import datetime
+from unittest import mock
 
 import pytest
 
+from punchcard.cards import clockin, clockout, get_last_punchcard, now
 from punchcard.exceptions import AlreadyClockedOutError, NotClockedOutError
 from punchcard.models import Punchcard
 
 
 def test_punchcard_when_end_is_none():
-    start = datetime(2024, 1, 1, 12, 0)
-    end = None
-    punchcard = Punchcard(start, end)
+    date = "2024-01-01"
+    start = "12:00"
+    punchcard = Punchcard(date=date, start=start)
 
     assert punchcard.start == start
-    assert punchcard.end == end
-    assert str(punchcard) == "2024-01-01 12:00:00 - None"
+    assert punchcard.end is None
 
 
 def test_punchcard_with_end_time():
-    start = datetime(2024, 1, 1, 12, 0)
-    end = datetime(2024, 1, 1, 13, 0)
-    punchcard = Punchcard(start, end)
+    date = "2024-01-01"
+    start = "12:00"
+    end = "13:00"
+
+    punchcard = Punchcard(date=date, start=start, end=end)
 
     assert punchcard.start == start
     assert punchcard.end == end
-    assert str(punchcard) == "2024-01-01 12:00:00 - 2024-01-01 13:00:00"
 
 
 def test_punchcard_clockout():
-    start = datetime(2024, 1, 1, 12, 0)
-    end = None
-    punchcard = Punchcard(start, end)
+    date = "2024-01-01"
+    start = "12:00"
 
-    punchcard.clockout()
+    with mock.patch("punchcard.cards.Punchcard.save") as mock_save:
+        punchcard = Punchcard(date=date, start=start)
+        clockout(punchcard)
 
-    assert punchcard.end is not None
-    assert isinstance(punchcard.end, datetime)
-
-
-def test_punchcard_duration():
-    start = datetime(2024, 1, 1, 12, 0)
-    end = datetime(2024, 1, 1, 13, 0)
-    punchcard = Punchcard(start, end)
-
-    assert punchcard.duration() == 60
-
-
-def test_duration_raises_error_when_punchcard_not_clocked_out():
-    start = datetime(2024, 1, 1, 12, 0)
-    end = None
-    punchcard = Punchcard(start, end)
-
-    with pytest.raises(NotClockedOutError):
-        punchcard.duration()
+        assert punchcard.end is not None
+        assert mock_save.called
 
 
 def test_clockout_raises_error_when_punchcard_already_clocked_out():
-    start = datetime(2024, 1, 1, 12, 0)
-    end = datetime(2024, 1, 1, 13, 0)
-    punchcard = Punchcard(start, end)
+    date = "2024-01-01"
+    start = "12:00"
+    end = "13:00"
 
-    with pytest.raises(AlreadyClockedOutError):
-        punchcard.clockout()
+    with mock.patch("punchcard.cards.Punchcard.save") as mock_save:
+        with pytest.raises(AlreadyClockedOutError):
+            punchcard = Punchcard(date=date, start=start, end=end)
+            clockout(punchcard)
+
+
+def test_punchcard_duration():
+    date = "2024-01-01"
+    start = "12:00"
+    end = "13:00"
+    punchcard = Punchcard(date=date, start=start, end=end)
+
+    assert punchcard.duration() == 1
+
+
+def test_duration_returns_none_when_punchcard_not_clocked_out():
+    date = "2024-01-01"
+    start = "12:00"
+    punchcard = Punchcard(date=date, start=start)
+
+    assert punchcard.duration() is None
