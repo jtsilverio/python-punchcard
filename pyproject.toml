@@ -2,7 +2,7 @@
 name = "punchcard"
 description = ""
 authors = [
-    {name = "Jefferson Silverio", email = "jfo.txt@gmail.com"},
+    {name = "Jefferson Silverio", email = "jt.silverio@proton.me"},
 ]
 dependencies = [
     "peewee>=3.17.6",
