@@ -1,5 +1,5 @@
 import datetime
-from typing import Tuple
+from typing import List, Tuple
 
 import peewee
 
@@ -19,10 +19,10 @@ def now() -> Tuple[str, str]:
 
 
 def get_last_punchcard() -> Punchcard | None:
-    return Punchcard.select().order_by(Punchcard.id.desc()).get_or_none()
+    return Punchcard.select().order_by(Punchcard.id.desc()).get_or_none()  #  type: ignore
 
 
-def clockin(punchcard: Punchcard):
+def clockin(punchcard: Punchcard) -> None:
     last_punchcard = get_last_punchcard()
     current_date, _ = now()
     if (
@@ -38,7 +38,7 @@ def clockin(punchcard: Punchcard):
     punchcard.save()
 
 
-def clockout(punchcard: Punchcard):
+def clockout(punchcard: Punchcard) -> None:
     if punchcard.end is not None:
         raise AlreadyClockedOutError()
 
@@ -47,7 +47,7 @@ def clockout(punchcard: Punchcard):
     punchcard.save()
 
 
-def get_punchcards(date: datetime.date):  # pylint: disable=redefined-outer-name
+def get_punchcards(date: datetime.date) -> List[Punchcard]:  # pylint: disable=redefined-outer-name
     if not isinstance(date, (datetime.date, datetime.datetime)):
         raise ValueError("date must be a datetime object")
     query = Punchcard.select().where(
