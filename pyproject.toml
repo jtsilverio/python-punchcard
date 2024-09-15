@@ -22,6 +22,9 @@ dev = [
     "mypy>=1.11.2",
 ]
 
+[project.scripts]
+punch = "punchcard.cli:main"
+
 [build-system]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
@@ -47,7 +50,7 @@ ignore_missing_imports = true
 strict_optional = true
 show_error_codes = true
 pretty = true
-exclude =  ["tests"]
+exclude =  ["tests","cli.py"]
 
 [tool.pytest.ini_options]
 minversion = "6.0"

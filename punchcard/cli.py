@@ -3,10 +3,13 @@ from rich.console import Console
 from rich.table import Table
 
 from punchcard import cards
+from punchcard.config import get_user_config, set_user_config, update_config
 from punchcard.exceptions import PunchcardError
 from punchcard.models import Punchcard
 
 app = typer.Typer()
+config_app = typer.Typer()
+app.add_typer(config_app, name="config")
 
 
 @app.command(name="in", short_help="Clock in a new punchcard")
@@ -84,22 +87,11 @@ def list_punchcards():  # pylint: disable=redefined-builtin
 
 
 @app.command(name="report", short_help="Report balance")
-def report():
+def report(show: int = 31):
     table = Table(show_header=True)
     table.add_column("Date", style="cyan")
     table.add_column("Duration")
     table.add_column("Balance")
-
-    report_list = []
-    current_date = ""
-    for card in Punchcard.select().limit(20):  # pylint: disable=not-an-iterable
-        if current_date == card.date:
-            duration += card.duration()
-        elif current_date != card.date:
-            balance = 8 - duration if duration is not None else "⏳"
-            report_list.append((card.date, duration, balance))
-            current_date = card.date
-            duration = 0
 
     for date, duration, balance in report_list:
         table.add_row(str(date), str(duration), str(balance))
@@ -108,5 +100,28 @@ def report():
     console.print(table)
 
 
-if __name__ == "__main__":
+@config_app.command(name="list", short_help="Print configuration options")
+def list_config():
+    config = get_user_config()
+    table = Table(show_header=True)
+    table.add_column("Config", style="cyan")
+    table.add_column("Value", style="cyan")
+
+    for key, value in config.items():
+        table.add_row(key, str(value))
+
+    console = Console()
+    console.print(table)
+
+
+@config_app.command(name="set", short_help="Print configuration options")
+def set_config(config: str, value: int):
+    update_config(config, value)
+
+
+def main():
     app()
+
+
+if __name__ == "__main__":
+    main()

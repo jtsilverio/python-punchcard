@@ -1,10 +1,9 @@
-from datetime import datetime
 from unittest import mock
 
 import pytest
 
-from punchcard.cards import clockin, clockout, get_last_punchcard, now
-from punchcard.exceptions import AlreadyClockedOutError, NotClockedOutError
+from punchcard.cards import clockout
+from punchcard.exceptions import AlreadyClockedOutError
 from punchcard.models import Punchcard
 
 
@@ -45,7 +44,7 @@ def test_clockout_raises_error_when_punchcard_already_clocked_out():
     start = "12:00"
     end = "13:00"
 
-    with mock.patch("punchcard.cards.Punchcard.save") as mock_save:
+    with mock.patch("punchcard.cards.Punchcard.save") as mock_save:  # pylint: disable=unused-variable
         with pytest.raises(AlreadyClockedOutError):
             punchcard = Punchcard(date=date, start=start, end=end)
             clockout(punchcard)
