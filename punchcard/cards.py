@@ -1,21 +1,15 @@
 import datetime
-from typing import List, Tuple
+from typing import List
 
 import peewee
 
-from punchcard.config import DATABASE_PATH, get_user_config
+from punchcard.config import DATABASE_PATH
+from punchcard.datetime import now
 from punchcard.exceptions import AlreadyClockedOutError, NotClockedOutError
 from punchcard.models import Punchcard
 
 db = peewee.SqliteDatabase(DATABASE_PATH)
 db.create_tables([Punchcard])
-
-
-def now() -> Tuple[str, str]:
-    datetime_now = datetime.datetime.now()
-    date = datetime_now.date().strftime("%Y-%m-%d")
-    time = datetime_now.time().strftime("%H:%M")
-    return date, time
 
 
 def get_last_punchcard() -> Punchcard | None:
