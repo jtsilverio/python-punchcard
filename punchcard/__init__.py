@@ -1,3 +1,3 @@
-from punchcard.config.config import create_user_config
+from punchcard.config import create_user_config_file
 
-create_user_config()
+create_user_config_file()

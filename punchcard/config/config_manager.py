@@ -1,21 +1,23 @@
 import json
 import pathlib
-from typing import Any
 
-from punchcard.constants import CONFIG_PATH
+from punchcard.config.dataclasses import UserConfig
+
+from .constants import CONFIG_PATH
 
 
-def get_user_config() -> dict[Any, Any]:
+def get_user_config() -> UserConfig:
     with open(str(CONFIG_PATH), "r", encoding="utf-8") as config_file:
-        return json.load(config_file)  # type: ignore
+        config_json = json.load(config_file)
+        return UserConfig.from_dict(config_json)
 
 
-def set_user_config(config: dict) -> None:
+def set_user_config(config: UserConfig) -> None:
     with CONFIG_PATH.open("w", encoding="utf-8") as config_file:
-        json.dump(config, config_file)
+        json.dump(config.to_dict(), config_file)
 
 
-def create_user_config() -> None:
+def create_user_config_file() -> None:
     if not pathlib.Path(CONFIG_PATH).exists():
         with open(
             "punchcard/config/config.json",
@@ -28,14 +30,7 @@ def create_user_config() -> None:
             json.dump(default_config, config_file)
 
 
-def update_config(key: str, value: int) -> None:
+def update_user_config(key: str, value: int) -> None:
     config = get_user_config()
     config[key] = value
     set_user_config(config)
-
-
-if __name__ == "__main__":
-    create_user_config()
-    c = get_user_config()
-    print(CONFIG_PATH)
-    print(c)

@@ -3,8 +3,7 @@ from typing import List, Tuple
 
 import peewee
 
-from punchcard.config import get_user_config
-from punchcard.constants import DATABASE_PATH
+from punchcard.config import DATABASE_PATH, get_user_config
 from punchcard.exceptions import AlreadyClockedOutError, NotClockedOutError
 from punchcard.models import Punchcard
 
