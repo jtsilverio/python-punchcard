@@ -22,7 +22,6 @@ db = SqliteDatabase(DATABASE_PATH)
 class Punchcard(Model):
     id = IntegerField(null=True, primary_key=True)
     date = DateField(formats=DATE_FORMAT)
-    entries = ForeignKeyField("Entry", backref="punchcard")
 
     def duration(self) -> float:
         """
@@ -31,7 +30,7 @@ class Punchcard(Model):
         Returns:
             float: The balance in *hours*.
         """
-        duration = sum((entry.duration() for entry in self.entries))
+        duration = sum((entry.duration() for entry in self.entries))  # pylint: disable=no-member # using peewee backref
         return float(duration)
 
     def balance(self) -> float:
@@ -49,9 +48,9 @@ class Punchcard(Model):
 
 class Entry(Model):
     id = IntegerField(null=True, primary_key=True)
+    start_time = TimeField(formats=TIME_FORMAT)
+    end_time = TimeField(formats=TIME_FORMAT, null=True)
     punchcard = ForeignKeyField(Punchcard, backref="entries")
-    start = TimeField(formats=TIME_FORMAT)
-    end = TimeField(formats=TIME_FORMAT, null=True)
 
     def duration(self) -> float | None:
         """
@@ -61,19 +60,19 @@ class Entry(Model):
         Returns:
             float | None: The duration in *hours* if the end time is set, otherwise None.
         """
-        if self.end is None:
+        if self.end_time is None:
             return None
 
         return (
-            datetime.strptime(self.end, TIME_FORMAT)
-            - datetime.strptime(self.start, TIME_FORMAT)
+            datetime.strptime(self.end_time, TIME_FORMAT)
+            - datetime.strptime(self.start_time, TIME_FORMAT)
         ).total_seconds() // 3600
 
     def __str__(self) -> str:
-        return f"Entry: {self.id} {self.start} {self.end} {self.duration()}"
+        return f"Entry: {self.id} {self.start_time} {self.end_time} {self.duration()}"
 
     def __repr__(self) -> str:
-        return f"Entry(id={self.id}, punchcard={self.punchcard} start={self.start}, end={self.end})"
+        return f"Entry(id={self.id}, punchcard={self.punchcard} start={self.start_time}, end={self.end_time})"  # pylint: disable=line-too-long
 
     class Meta:
         database = db
