@@ -4,49 +4,75 @@ from typing import List
 import peewee
 
 from punchcard.config import DATABASE_PATH
-from punchcard.datetime import now
-from punchcard.exceptions import AlreadyClockedOutError, NotClockedOutError
-from punchcard.models import Punchcard
+from punchcard.exceptions import (
+    AlreadyClockedOutError,
+    NotClockedinError,
+    NotClockedOutError,
+)
+from punchcard.models import Entry, Punchcard
+from punchcard.time import now
 
 db = peewee.SqliteDatabase(DATABASE_PATH)
-db.create_tables([Punchcard])
 
 
-def get_last_punchcard() -> Punchcard | None:
-    return Punchcard.select().order_by(Punchcard.id.desc()).get_or_none()  #  type: ignore
+def get_punchcard(date: str) -> Punchcard | None:
+    return Punchcard.select().where(Punchcard.date == date).get_or_none()  # type: ignore
 
 
-def clockin(punchcard: Punchcard) -> None:
-    last_punchcard = get_last_punchcard()
-    current_date, _ = now()
-    if (
-        (last_punchcard is not None)
-        and (last_punchcard.date == current_date)
-        and (last_punchcard.end is None)
-    ):
-        raise NotClockedOutError()
+def get_entries(date: str) -> List[Entry]:
+    punchcard = get_punchcard(date)
+    if punchcard is None:
+        return []
+    return list(punchcard.entries)
 
-    if punchcard.end is not None:
+
+def get_last_entry(punchcard: Punchcard) -> Entry | None:
+    return punchcard.entries.select().order_by(Entry.id.desc()).get_or_none()  #  type: ignore
+
+
+def clockin() -> None:
+    current_date, current_time = now()
+    today_punchcard = get_punchcard(current_date)
+
+    if today_punchcard is None:
+        punchcard = Punchcard(date=current_date)
+        entry = Entry(start_time=current_time, punchcard=punchcard)
+        punchcard.save()
+        entry.save()
+    else:
+        last_entry = get_last_entry(today_punchcard)
+        if last_entry is not None:
+            if last_entry.end_time is None:
+                raise NotClockedOutError()
+
+        entry = Entry(start_time=current_time, punchcard=today_punchcard)
+        entry.save()
+
+
+def clockout() -> None:
+    current_date, current_time = now()
+    today_punchcard = get_punchcard(current_date)
+
+    if today_punchcard is None:
+        raise NotClockedinError()
+
+    last_entry = get_last_entry(today_punchcard)
+    if last_entry is None:
+        raise NotClockedinError()
+
+    if last_entry.end_time is not None:
         raise AlreadyClockedOutError()
 
-    punchcard.save()
+    last_entry.end_time = current_time
+    last_entry.save()
 
 
-def clockout(punchcard: Punchcard) -> None:
-    if punchcard.end is not None:
-        raise AlreadyClockedOutError()
+# def list_entries(date: datetime.date) -> List:  # pylint: disable=redefined-outer-name
+#     if not isinstance(date, (datetime.date, datetime.datetime)):
+#         raise ValueError("date must be a datetime object")
 
-    _, end = now()
-    punchcard.end = end
-    punchcard.save()
+#     return get_entries(date.strftime("%Y-%m-%d"))
 
 
-def get_punchcards(date: datetime.date) -> List[Punchcard]:  # pylint: disable=redefined-outer-name
-    if not isinstance(date, (datetime.date, datetime.datetime)):
-        raise ValueError("date must be a datetime object")
-    query = Punchcard.select().where(
-        Punchcard.date == date,
-    )
-
-    result = list(query.execute())
-    return result
+if __name__ == "__main__":
+    # print(list_entries(datetime.date.today()))

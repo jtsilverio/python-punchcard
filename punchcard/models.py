@@ -42,6 +42,9 @@ class Punchcard(Model):
         """
         return float(self.duration() - USER_CONFIG["workhours"])
 
+    def __str__(self) -> str:
+        return f"Punchcard: {self.id} {self.date} {self.duration()}"
+
     class Meta:
         database = db
 
@@ -61,7 +64,7 @@ class Entry(Model):
             float | None: The duration in *hours* if the end time is set, otherwise None.
         """
         if self.end_time is None:
-            return None
+            return 0.0
 
         return (
             datetime.strptime(self.end_time, TIME_FORMAT)
@@ -76,3 +79,11 @@ class Entry(Model):
 
     class Meta:
         database = db
+
+
+def initialize_database() -> None:
+    db.connect()
+    db.create_tables([Punchcard, Entry])
+
+
+initialize_database()
