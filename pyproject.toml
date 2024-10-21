@@ -26,8 +26,11 @@ dev = [
 punch = "punchcard.cli:main"
 
 [build-system]
-requires = ["pdm-backend"]
-build-backend = "pdm.backend"
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.dynamic]
+version = "punchcard.version.__version__"
 
 [tool.mypy]
 python_version = "3.12"
@@ -51,3 +54,6 @@ addopts = "-x -vv"
 testpaths = [
     "tests",
 ]
+
+[tool.uv.workspace]
+members = ["t"]
