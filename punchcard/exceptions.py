@@ -1,7 +1,8 @@
 from typing import Any
 
 
-class PunchcardError(Exception): ...
+class PunchcardError(Exception):
+    pass
 
 
 class AlreadyClockedOutError(PunchcardError):

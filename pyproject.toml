@@ -2,7 +2,7 @@
 name = "punchcard"
 description = ""
 authors = [
-    {name = "Jefferson Silverio", email = "jt.silverio@proton.me"},
+    {name = "Jefferson Silverio", email = "jt.silverio@proton.me"}
 ]
 dependencies = [
     "peewee>=3.17.6",
@@ -28,13 +28,6 @@ punch = "punchcard.cli:main"
 [build-system]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
-
-[tool.pdm.version]
-source = "file"
-path = "punchcard/version.py"
-
-[tool.pdm]
-distribution = true
 
 [tool.mypy]
 python_version = "3.12"

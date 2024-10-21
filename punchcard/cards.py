@@ -1,5 +1,4 @@
-import datetime
-from typing import List
+from typing import List, Tuple
 
 import peewee
 
@@ -30,7 +29,7 @@ def get_last_entry(punchcard: Punchcard) -> Entry | None:
     return punchcard.entries.select().order_by(Entry.id.desc()).get_or_none()  #  type: ignore
 
 
-def clockin() -> None:
+def clockin() -> Tuple[Punchcard, Entry]:
     current_date, current_time = now()
     today_punchcard = get_punchcard(current_date)
 
@@ -39,20 +38,23 @@ def clockin() -> None:
         entry = Entry(start_time=current_time, punchcard=punchcard)
         punchcard.save()
         entry.save()
+
+        return punchcard, entry
     else:
         last_entry = get_last_entry(today_punchcard)
-        if last_entry is not None:
-            if last_entry.end_time is None:
-                raise NotClockedOutError()
+        if (last_entry is not None) and (last_entry.end_time is None):
+            raise NotClockedOutError()
 
         entry = Entry(start_time=current_time, punchcard=today_punchcard)
         entry.save()
 
+        return today_punchcard, entry
 
-def clockout() -> None:
+
+def clockout() -> Tuple[Punchcard, Entry]:
     current_date, current_time = now()
-    today_punchcard = get_punchcard(current_date)
 
+    today_punchcard = get_punchcard(current_date)
     if today_punchcard is None:
         raise NotClockedinError()
 
@@ -66,13 +68,8 @@ def clockout() -> None:
     last_entry.end_time = current_time
     last_entry.save()
 
-
-# def list_entries(date: datetime.date) -> List:  # pylint: disable=redefined-outer-name
-#     if not isinstance(date, (datetime.date, datetime.datetime)):
-#         raise ValueError("date must be a datetime object")
-
-#     return get_entries(date.strftime("%Y-%m-%d"))
+    return today_punchcard, last_entry
 
 
 if __name__ == "__main__":
-    # print(list_entries(datetime.date.today()))
+    print(clockin())
