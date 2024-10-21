@@ -2,20 +2,19 @@ from datetime import datetime
 from typing import Annotated
 
 import typer
-from rich import theme
+from rich.box import ROUNDED
 from rich.console import Console
 from rich.table import Table
+from rich.text import Text
 
 from punchcard import cards
-from punchcard.config import get_user_config
+from punchcard.config import get_user_config, update_user_config
 from punchcard.config.constants import DATE_FORMAT
 from punchcard.exceptions import NotClockedOutError, PunchcardError
 from punchcard.models import Punchcard
 from punchcard.time import now
 
 app = typer.Typer()
-config_app = typer.Typer()
-app.add_typer(config_app, name="config")
 
 
 @app.command(name="in", short_help="Clock in a new punchcard")
@@ -85,8 +84,7 @@ def list_punchcards():  # pylint: disable=redefined-builtin
 
 @app.command(name="entries", short_help="List punchcard's entries")
 def list_entries(date: Annotated[str, typer.Argument()] = None):  # pylint: disable=redefined-builtin
-    TABLE_SIZE = 40
-    from rich.box import ROUNDED
+    TABLE_SIZE = 40  # pylint: disable=invalid-name
 
     # List entries for a specific date
     table_entries = Table(show_header=True, width=TABLE_SIZE, box=ROUNDED)
@@ -107,14 +105,6 @@ def list_entries(date: Annotated[str, typer.Argument()] = None):  # pylint: disa
             entry.end_time if entry.end_time is not None else "⏳",
         )
 
-    # Summary table
-    table_summary = Table(
-        show_header=True,
-        width=TABLE_SIZE,
-    )
-
-    from rich.text import Text
-
     summary = Text(
         f"Duration: {card.duration()} Balance: {card.balance()}",
     )
@@ -129,6 +119,10 @@ def list_entries(date: Annotated[str, typer.Argument()] = None):  # pylint: disa
     console.print(table_container)
 
 
+config_app = typer.Typer()
+app.add_typer(config_app, name="config")
+
+
 @config_app.command(name="list", short_help="Print configuration options")
 def list_config():
     config = get_user_config()
@@ -136,7 +130,7 @@ def list_config():
     table.add_column("Config", style="cyan")
     table.add_column("Value", style="cyan")
 
-    for key, value in config.items():
+    for key, value in config.to_dict().items():
         table.add_row(key, str(value))
 
     console = Console()
@@ -145,7 +139,7 @@ def list_config():
 
 @config_app.command(name="set", short_help="Print configuration options")
 def set_config(config: str, value: int):
-    update_config(config, value)
+    update_user_config(config, value)
 
 
 def main():
